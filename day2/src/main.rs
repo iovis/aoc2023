@@ -1,6 +1,4 @@
-use std::collections::HashMap;
-
-use day2::game::{self, Cube, Maximum};
+use day2::game::{self, Maximum};
 
 fn main() {
     let input = include_str!("input.txt");
@@ -12,22 +10,17 @@ fn main() {
 /// Which games are possible with [12 Red, 13 Green, 14 Blue]?
 /// Sum the Game ID of the possible ones
 fn p1(input: &str) -> u64 {
-    let limits = HashMap::from([(Cube::Red, 12), (Cube::Green, 13), (Cube::Blue, 14)]);
+    let limits = Maximum {
+        red: 12,
+        green: 13,
+        blue: 14,
+    };
 
     input
         .lines()
         .map(game::parse)
-        .filter_map(|game| {
-            for set in game.sets {
-                for (cube, count) in set {
-                    if count > *limits.get(&cube).unwrap() {
-                        return None;
-                    }
-                }
-            }
-
-            Some(game.id)
-        })
+        .filter(|game| game.is_possible(&limits))
+        .map(|game| game.id)
         .sum()
 }
 
