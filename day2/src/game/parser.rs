@@ -8,10 +8,10 @@ use nom::multi::separated_list1;
 use nom::sequence::{delimited, separated_pair, tuple};
 use nom::IResult;
 
-use crate::game::{self, Cube, Game};
+use super::{game, Cube, Game};
 
 /// Game 1: 3 blue, 4 red; 1 red, 2 green, 6 blue; 2 green
-pub fn parse_game(input: &str) -> Game {
+pub fn parse(input: &str) -> Game {
     #[rustfmt::skip]
     let (_rest, game) = all_consuming(
         map(
@@ -110,9 +110,9 @@ mod tests {
     }
 
     #[test]
-    fn parse_game_test() {
+    fn parse_test() {
         assert_eq!(
-            parse_game("Game 1: 3 blue, 4 red; 1 red, 2 green, 6 blue; 2 green"),
+            parse("Game 1: 3 blue, 4 red; 1 red, 2 green, 6 blue; 2 green"),
             Game {
                 id: 1,
                 sets: vec![
