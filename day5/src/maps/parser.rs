@@ -33,11 +33,7 @@ fn parse_map(input: &str) -> IResult<&str, Map> {
             tag(" map:\n"),
             parse_mappings,
         )),
-        |((source, destination), _, mappings)| Map {
-            source: source.into(),
-            destination: destination.into(),
-            mappings,
-        },
+        |((source, destination), _, mappings)| Map::new(source, destination, &mappings),
     )(input)
 }
 
@@ -118,10 +114,10 @@ mod tests {
             parse_map(input),
             Ok((
                 "\n",
-                Map {
-                    source: "seed".to_string(),
-                    destination: "soil".to_string(),
-                    mappings: vec![
+                Map::new(
+                    "seed",
+                    "soil",
+                    &[
                         RangeMapping {
                             source: 98,
                             destination: 50,
@@ -133,7 +129,7 @@ mod tests {
                             len: 48
                         }
                     ]
-                },
+                ),
             ))
         );
     }
@@ -156,10 +152,10 @@ mod tests {
             Ok((
                 "\n",
                 vec![
-                    Map {
-                        source: "seed".to_string(),
-                        destination: "soil".to_string(),
-                        mappings: vec![
+                    Map::new(
+                        "seed",
+                        "soil",
+                        &[
                             RangeMapping {
                                 source: 98,
                                 destination: 50,
@@ -171,11 +167,11 @@ mod tests {
                                 len: 48
                             }
                         ]
-                    },
-                    Map {
-                        source: "soil".to_string(),
-                        destination: "fertilizer".to_string(),
-                        mappings: vec![
+                    ),
+                    Map::new(
+                        "soil",
+                        "fertilizer",
+                        &[
                             RangeMapping {
                                 source: 15,
                                 destination: 0,
@@ -192,7 +188,7 @@ mod tests {
                                 len: 15
                             }
                         ]
-                    }
+                    )
                 ]
             ))
         );
@@ -228,10 +224,10 @@ mod tests {
             (
                 vec![79, 14, 55, 13],
                 vec![
-                    Map {
-                        source: "seed".to_string(),
-                        destination: "soil".to_string(),
-                        mappings: vec![
+                    Map::new(
+                        "seed",
+                        "soil",
+                        &[
                             RangeMapping {
                                 source: 98,
                                 destination: 50,
@@ -243,11 +239,11 @@ mod tests {
                                 len: 48
                             }
                         ]
-                    },
-                    Map {
-                        source: "soil".to_string(),
-                        destination: "fertilizer".to_string(),
-                        mappings: vec![
+                    ),
+                    Map::new(
+                        "soil",
+                        "fertilizer",
+                        &[
                             RangeMapping {
                                 source: 15,
                                 destination: 0,
@@ -264,7 +260,7 @@ mod tests {
                                 len: 15
                             }
                         ]
-                    }
+                    )
                 ]
             )
         );

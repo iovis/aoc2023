@@ -4,19 +4,23 @@ use crate::RangeMapping;
 pub struct Map {
     pub source: String,
     pub destination: String,
-    pub mappings: Vec<RangeMapping>,
+    mappings: Vec<RangeMapping>,
 }
 
 impl Map {
-    pub fn find(&self, location: u64) -> u64 {
-        for mapping in &self.mappings {
-            if let Some(location) = mapping.find(location) {
-                return location;
-            }
+    pub fn new(source: &str, destination: &str, mappings: &[RangeMapping]) -> Self {
+        Self {
+            source: source.into(),
+            destination: destination.into(),
+            mappings: mappings.to_owned(),
         }
+    }
 
-        // If not found, it's the same
-        location
+    pub fn find(&self, location: u64) -> u64 {
+        self.mappings
+            .iter()
+            .find_map(|range| range.find(location))
+            .unwrap_or(location)
     }
 }
 
@@ -26,10 +30,10 @@ mod tests {
 
     #[test]
     fn find_test() {
-        let map = Map {
-            source: "seed".to_string(),
-            destination: "soil".to_string(),
-            mappings: vec![
+        let map = Map::new(
+            "seed",
+            "soil",
+            &[
                 RangeMapping {
                     source: 98,
                     destination: 50,
@@ -41,7 +45,7 @@ mod tests {
                     len: 48,
                 },
             ],
-        };
+        );
 
         assert_eq!(map.find(1), 1);
         assert_eq!(map.find(49), 49);

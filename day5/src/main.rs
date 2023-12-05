@@ -66,15 +66,12 @@ fn p2(input: &str) -> u64 {
         })
         // Same as p1
         .map(|seed| {
-            let mut current_source = "seed";
-            let mut current_location = seed;
-
             // Currently the Maps seem to be unique and in order,
             // so I can just iterate over it
+            let mut current_location = seed;
+
             for map in &maps {
-                assert!(current_source == map.source);
                 current_location = map.find(current_location);
-                current_source = &map.destination;
             }
 
             current_location

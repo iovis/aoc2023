@@ -1,4 +1,4 @@
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct RangeMapping {
     pub source: u64,
     pub destination: u64,
@@ -26,6 +26,8 @@ impl RangeMapping {
         Some(self.destination + delta)
     }
 
+    // Seems to be too slow to try to memoize into a HashMap/BTreeMap,
+    // even with fast hashing like rustc-hash
     pub fn iter(&self) -> impl Iterator<Item = (u64, u64)> {
         (self.source..)
             .zip(self.destination..)
