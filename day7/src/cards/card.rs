@@ -1,6 +1,7 @@
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Hash)]
 pub enum Card {
-    Two = 2,
+    Joker = 1,
+    Two,
     Three,
     Four,
     Five,
@@ -9,7 +10,7 @@ pub enum Card {
     Eight,
     Nine,
     Ten,
-    Jack,
+    // Jack,
     Queen,
     King,
     Ace,
@@ -27,7 +28,8 @@ impl From<u8> for Card {
             b'8' => Self::Eight,
             b'9' => Self::Nine,
             b'T' => Self::Ten,
-            b'J' => Self::Jack,
+            b'J' => Self::Joker,
+            // b'J' => Self::Jack,
             b'Q' => Self::Queen,
             b'K' => Self::King,
             b'A' => Self::Ace,
