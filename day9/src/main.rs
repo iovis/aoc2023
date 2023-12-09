@@ -24,16 +24,17 @@ fn p2(input: &str) -> i64 {
 }
 
 fn predict(line: &[i64], backwards: bool) -> i64 {
+    if line.iter().all(|&x| x == 0) {
+        return 0;
+    }
+
     let mut diff = Vec::with_capacity(line.len() - 1);
 
     line.iter()
         .tuple_windows()
         .for_each(|(a, b)| diff.push(b - a));
 
-    let mut previous = 0;
-    if !diff.iter().all(|&x| x == 0) {
-        previous = predict(&diff, backwards);
-    }
+    let previous = predict(&diff, backwards);
 
     if backwards {
         line[0] - previous
