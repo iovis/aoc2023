@@ -10,10 +10,10 @@ impl From<(usize, usize)> for Point {
 }
 
 impl Point {
-    // pub fn coords(&self) -> (usize, usize) {
-    //     (self.0, self.1)
-    // }
-    //
+    pub fn coords(&self) -> (usize, usize) {
+        (self.0, self.1)
+    }
+
     pub fn symbol(&self, map: &[&[u8]]) -> u8 {
         map[self.0][self.1]
     }
