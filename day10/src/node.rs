@@ -1,6 +1,4 @@
-use crate::point::Point;
-
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum State {
     Path,
     Out,
@@ -36,8 +34,8 @@ impl std::fmt::Display for Node {
                 b'S' => "S",
                 _ => "E", // Point shouldn't be in path
             },
-            State::Out => "·",
-            State::In => "*",
+            State::Out => "×",
+            State::In => "o",
             State::Unknown => "?",
         };
 

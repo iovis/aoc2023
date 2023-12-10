@@ -15,49 +15,49 @@ fn main() {
     println!("p2 = {:?}", p2(input));
 }
 
-// fn p1(input: &str) -> usize {
-//     let map = input.lines().map(str::as_bytes).collect_vec();
-//     let limits = (map.len() - 1, map[0].len() - 1);
-//
-//     // Find Start of path
-//     let mut start = Point(0, 0);
-//     for (i, row) in map.iter().enumerate() {
-//         if let Some(j) = row.iter().position(|&x| x == b'S') {
-//             start = Point(i, j);
-//         }
-//     }
-//
-//     let mut path = vec![start];
-//     let mut next_direction = Direction::North;
-//
-//     // Calculate starting point direction
-//     for dir in Direction::iter() {
-//         let Some(next_point) = start.go(dir, limits) else {
-//             continue;
-//         };
-//
-//         // -> East
-//         if let Some(next_dir) = next_point.symbol(&map).next_from(!dir) {
-//             path.push(next_point);
-//             next_direction = next_dir;
-//             break;
-//         }
-//     }
-//
-//     loop {
-//         let current = *path.last().unwrap();
-//         let next_point = current.go(next_direction, limits).unwrap();
-//
-//         if next_point.symbol(&map) == b'S' {
-//             break;
-//         }
-//
-//         path.push(next_point);
-//         next_direction = next_point.symbol(&map).next_from(!next_direction).unwrap();
-//     }
-//
-//     path.len() / 2
-// }
+fn p1(input: &str) -> usize {
+    let map = input.lines().map(str::as_bytes).collect_vec();
+    let limits = (map.len() - 1, map[0].len() - 1);
+
+    // Find Start of path
+    let mut start = Point(0, 0);
+    for (i, row) in map.iter().enumerate() {
+        if let Some(j) = row.iter().position(|&x| x == b'S') {
+            start = Point(i, j);
+        }
+    }
+
+    let mut path = vec![start];
+    let mut next_direction = Direction::North;
+
+    // Calculate starting point direction
+    for dir in Direction::iter() {
+        let Some(next_point) = start.go(dir, limits) else {
+            continue;
+        };
+
+        // -> East
+        if let Some(next_dir) = next_point.symbol(&map).next_from(!dir) {
+            path.push(next_point);
+            next_direction = next_dir;
+            break;
+        }
+    }
+
+    loop {
+        let current = *path.last().unwrap();
+        let next_point = current.go(next_direction, limits).unwrap();
+
+        if next_point.symbol(&map) == b'S' {
+            break;
+        }
+
+        path.push(next_point);
+        next_direction = next_point.symbol(&map).next_from(!next_direction).unwrap();
+    }
+
+    path.len() / 2
+}
 
 fn p2(input: &str) -> usize {
     let mut map = input
@@ -113,9 +113,61 @@ fn p2(input: &str) -> usize {
         next_direction = map[i][j].symbol.next_from(!next_direction).unwrap();
     }
 
+    // print(&map);
+
+    // Find points out by BFS from the edges
+    let edges = [
+        ((0, 0), (0, limits.1)),
+        ((limits.0, limits.0), (0, limits.1)),
+        ((0, limits.0), (0, 0)),
+        ((0, limits.0), (limits.1, limits.1)),
+    ];
+
+    for ((start_i, end_i), (start_j, end_j)) in edges {
+        for i in start_i..=end_i {
+            for j in start_j..=end_j {
+                if map[i][j].state == State::Unknown {
+                    map[i][j].state = State::Out;
+                    bfs(&mut map, Point(i, j));
+                }
+            }
+        }
+    }
+
+    // Find points in
+    // TODO: squeezes
+    for i in 0..map.len() {
+        for j in 0..map[i].len() {
+            if map[i][j].state == State::Unknown {
+                map[i][j].state = State::In;
+            }
+        }
+    }
+
     print(&map);
 
-    23
+    map.iter()
+        .flatten()
+        .filter(|node| node.state == State::In)
+        .count()
+}
+
+fn bfs(map: &mut [Vec<Node>], start: Point) {
+    let (i, j) = start.coords();
+    let target_state = map[i][j].state;
+    let limits = (map.len() - 1, map[0].len() - 1);
+
+    for dir in Direction::iter() {
+        let Some(next_point) = start.go(dir, limits) else {
+            continue;
+        };
+
+        let (i, j) = next_point.coords();
+        if map[i][j].state == State::Unknown {
+            map[i][j].state = target_state;
+            bfs(map, next_point);
+        }
+    }
 }
 
 fn print(map: &[Vec<Node>]) {
@@ -126,6 +178,8 @@ fn print(map: &[Vec<Node>]) {
 
         println!();
     }
+
+    println!();
 }
 
 #[cfg(test)]
@@ -142,11 +196,11 @@ mod tests {
             LJ...
         "};
 
-        // assert_eq!(p1(input), 8);
+        assert_eq!(p1(input), 8);
     }
 
     #[test]
-    fn p2_test() {
+    fn p2_test1() {
         let input = indoc::indoc! {"
             ...........
             .S-------7.
@@ -160,10 +214,11 @@ mod tests {
         "};
 
         println!("{input}");
-        p2(input);
-        println!("================");
-        // assert_eq!(p2(input), 4);
+        assert_eq!(p2(input), 4);
+    }
 
+    #[test]
+    fn p2_test2() {
         let input = indoc::indoc! {"
             ..........
             .S------7.
@@ -177,10 +232,11 @@ mod tests {
         "};
 
         println!("{input}");
-        p2(input);
-        println!("================");
-        // assert_eq!(p2(input), 4);
+        assert_eq!(p2(input), 4);
+    }
 
+    #[test]
+    fn p2_test3() {
         let input = indoc::indoc! {"
             .F----7F7F7F7F-7....
             .|F--7||||||||FJ....
@@ -195,10 +251,11 @@ mod tests {
         "};
 
         println!("{input}");
-        p2(input);
-        println!("================");
-        // assert_eq!(p2(input), 8);
+        assert_eq!(p2(input), 8);
+    }
 
+    #[test]
+    fn p2_test4() {
         let input = indoc::indoc! {"
             FF7FSF7F7F7F7F7F---7
             L|LJ||||||||||||F--J
@@ -213,8 +270,6 @@ mod tests {
         "};
 
         println!("{input}");
-        p2(input);
-        // assert_eq!(p2(input), 10);
-        assert!(false);
+        assert_eq!(p2(input), 10);
     }
 }
