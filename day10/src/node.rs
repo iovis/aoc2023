@@ -10,6 +10,7 @@ pub enum State {
 pub struct Node {
     pub symbol: u8,
     pub state: State,
+    pub visited: bool,
 }
 
 impl Node {
@@ -17,6 +18,7 @@ impl Node {
         Self {
             symbol,
             state: State::Unknown,
+            visited: false,
         }
     }
 }

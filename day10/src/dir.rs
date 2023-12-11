@@ -31,7 +31,7 @@ impl std::ops::Not for Direction {
 
 pub trait DirectionExt {
     fn directions(self) -> Option<[Direction; 2]>;
-    fn next_from(self, previous: Direction) -> Option<Direction>;
+    fn next_from(self, from: Direction) -> Option<Direction>;
 }
 
 impl DirectionExt for u8 {
