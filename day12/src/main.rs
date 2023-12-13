@@ -7,9 +7,15 @@ mod parser;
 
 fn main() {
     let input = include_str!("input.txt");
+    let input = "???.### 1,1,3
+.??..??...?##. 1,1,3
+?#?#?#?#?#?#?#? 1,3,1,6
+????.#...#... 4,1,1
+????.######..#####. 1,6,5
+?###???????? 3,2,1";
 
     println!("p1 = {:?}", p1(input));
-    // println!("p2 = {:?}", p2(input));
+    println!("p2 = {:?}", p2(input));
 }
 
 /// '.' -> operational
@@ -23,11 +29,7 @@ fn p1(input: &str) -> usize {
     let mut permutations = vec![];
 
     for n in 0..20 {
-        permutations.push(
-            itertools::repeat_n(b"#.".iter(), n)
-                .multi_cartesian_product()
-                .collect_vec(),
-        );
+        permutations.push(itertools::repeat_n(b"#.".iter(), n).multi_cartesian_product());
     }
 
     input
@@ -68,16 +70,20 @@ fn p1(input: &str) -> usize {
 
 fn p2(input: &str) -> usize {
     let re = Regex::new(r"\?+").unwrap();
-    let mut permutations = Vec::from_par_iter((0..99).par_bridge().map(|i| {
-        itertools::repeat_n(b"#.".iter(), i)
-            .multi_cartesian_product()
-            .collect_vec()
-    }));
+    let mut permutations = vec![];
 
-    eprintln!("permutations = {permutations:?}");
+    for n in 0..99 {
+        permutations.push(itertools::repeat_n(b"#.".iter(), n).multi_cartesian_product());
+    }
+    // let mut permutations = Vec::from_par_iter(
+    //     (0..99)
+    //         .par_bridge()
+    //         .map(|i| itertools::repeat_n(b"#.".iter(), i).multi_cartesian_product()),
+    // );
 
     input
         .lines()
+        .par_bridge()
         .map(|line| line.split_once(' ').unwrap())
         .map(|(symbols, results)| {
             let symbols = std::iter::repeat(symbols).take(5).join("?").into_bytes();
@@ -113,14 +119,14 @@ fn p2(input: &str) -> usize {
 fn build_string(
     mut string: &mut [u8],
     matches: &mut Vec<Match>,
-    // permutations: &Vec<MultiProduct<std::slice::Iter<u8>>>,
-    permutations: &Vec<Vec<Vec<&u8>>>,
+    permutations: &Vec<MultiProduct<std::slice::Iter<u8>>>,
+    // permutations: &Vec<Vec<Vec<&u8>>>,
     results: &Vec<u64>,
     i: usize,
     mut valid: &mut usize,
 ) {
     let m = matches[i];
-    let perms = permutations[m.len()].clone();
+    let perms = permutations[m.len()].clone().collect_vec();
 
     for per in perms {
         for i in 0..per.len() {
