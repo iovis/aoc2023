@@ -1,6 +1,6 @@
-use std::str::from_utf8;
-
-use itertools::Itertools;
+use itertools::{Itertools, MultiProduct};
+use rayon::prelude::{FromParallelIterator, ParallelBridge, ParallelIterator};
+use rayon::*;
 use regex::bytes::{Match, Regex};
 
 mod parser;
@@ -66,9 +66,54 @@ fn p1(input: &str) -> usize {
         .sum()
 }
 
+fn p2(input: &str) -> usize {
+    let re = Regex::new(r"\?+").unwrap();
+    let mut permutations = Vec::from_par_iter((0..99).par_bridge().map(|i| {
+        itertools::repeat_n(b"#.".iter(), i)
+            .multi_cartesian_product()
+            .collect_vec()
+    }));
+
+    eprintln!("permutations = {permutations:?}");
+
+    input
+        .lines()
+        .map(|line| line.split_once(' ').unwrap())
+        .map(|(symbols, results)| {
+            let symbols = std::iter::repeat(symbols).take(5).join("?").into_bytes();
+            let results = std::iter::repeat(results)
+                .take(5)
+                .join(",")
+                .split(",")
+                .map(|n| n.parse::<u64>().unwrap())
+                .collect_vec();
+
+            (symbols, results)
+        })
+        .map(|(mut symbols, results)| {
+            let mut matches = re.find_iter(&symbols).collect_vec();
+            let mut valid = 0;
+            let mut symbols = symbols.iter().copied().collect_vec();
+            let mut valid = 0;
+
+            build_string(
+                &mut symbols,
+                &mut matches,
+                &permutations,
+                &results,
+                0,
+                &mut valid,
+            );
+
+            valid
+        })
+        .sum()
+}
+
 fn build_string(
     mut string: &mut [u8],
     matches: &mut Vec<Match>,
+    // permutations: &Vec<MultiProduct<std::slice::Iter<u8>>>,
     permutations: &Vec<Vec<Vec<&u8>>>,
     results: &Vec<u64>,
     i: usize,
@@ -147,5 +192,19 @@ mod tests {
         "};
 
         assert_eq!(p1(input), 21);
+    }
+
+    #[test]
+    fn p2_test() {
+        let input = indoc::indoc! {"
+            ???.### 1,1,3
+            .??..??...?##. 1,1,3
+            ?#?#?#?#?#?#?#? 1,3,1,6
+            ????.#...#... 4,1,1
+            ????.######..#####. 1,6,5
+            ?###???????? 3,2,1
+        "};
+
+        assert_eq!(p2(input), 525152);
     }
 }
