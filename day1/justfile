@@ -1,0 +1,84 @@
+cc := "clang"
+libs := ""
+cc_flags := "-std=gnu23 -fdefer-ts -D_GNU_SOURCE -Wall -Wextra"
+sanitize_flags := "-fsanitize=address,undefined -fno-omit-frame-pointer"
+debug_flags := f"{{cc_flags}} -g -O0"
+release_flags := f"{{cc_flags}} -O3 -DNDEBUG"
+
+program_name := file_name(justfile_directory())
+build_dir := "./build"
+debug_dir := build_dir / "debug"
+release_dir := build_dir / "release"
+test_dir := build_dir / "debug"
+debug_bin := debug_dir / program_name
+release_bin := release_dir / program_name
+test_bin := test_dir / f"{{program_name}}_test"
+
+default: run
+
+alias r := run
+run *args: build_debug
+    {{ debug_bin }} {{ args }}
+
+alias build := build_debug
+build_debug: init
+    {{ cc }} {{ debug_flags }} {{ sanitize_flags }} c/main.c -o {{ debug_bin }} {{ libs }}
+
+alias rr := run_release
+run_release *args: build_release
+    {{ release_bin }} {{ args }}
+
+alias release := build_release
+build_release: init
+    {{ cc }} {{ release_flags }} c/main.c -o {{ release_bin }} {{ libs }}
+
+alias t := run_test
+alias test := run_test
+run_test: build_test
+    {{ test_bin }}
+
+build_test: init
+    {{ cc }} {{ debug_flags }} {{ sanitize_flags }} -DTEST c/main_test.c -o {{ test_bin }} {{ libs }}
+
+alias db := compiledb
+compiledb:
+    bear -- just clean build_debug build_test
+
+alias w := watch
+alias dev := watch
+watch:
+    watchexec -c clear -e c,h just run
+
+alias wt := watch_test
+watch_test:
+    watchexec -c clear -e c,h just test
+
+alias d := debug
+debug *args: build_debug
+    ASAN_OPTIONS=detect_leaks=0 lldb -o "b main" -o "run" -- {{ debug_bin }} {{ args }}
+
+alias dt := debug_test
+[positional-arguments]
+debug_test *args: build_test
+    ASAN_OPTIONS=detect_leaks=0 lldb "$@" -- {{ test_bin }}
+
+alias v := valgrind
+valgrind *args: build_valgrind
+    valgrind --tool=memcheck --leak-check=full --track-origins=yes {{ debug_bin }} {{ args }}
+
+build_valgrind: init
+    {{ cc }} {{ debug_flags }} c/main.c -o {{ debug_bin }} {{ libs }}
+
+alias c := callgrind
+callgrind *args: build_callgrind
+    valgrind --tool=callgrind --callgrind-out-file=callgrind.out {{ release_bin }} {{ args }}
+    callgrind_annotate callgrind.out
+
+build_callgrind: init
+    {{ cc }} {{ release_flags }} -g c/main.c -o {{ release_bin }} {{ libs }}
+
+@init:
+    mkdir -p {{ debug_dir }} {{ release_dir }} {{ test_dir }}
+
+clean:
+    rm -rf build/

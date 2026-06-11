@@ -2,13 +2,10 @@ use std::iter::IntoIterator;
 mod parser;
 
 fn main() {
-    let input = include_str!("input.txt");
+    let input = include_str!("../input.txt");
 
-    let a1 = p1(input);
-    println!("{a1:?}");
-
-    let a2 = p2(input);
-    println!("{a2:?}");
+    println!("p1 = {}", p1(input));
+    // println!("p2 = {}", p2(input));
 }
 
 /// Find the first and last digit in a line
