@@ -1,7 +1,6 @@
 #include "parser.h"
 
 #include "base.h"
-#include "stb_ds.h"
 
 #include <stddef.h>
 #include <stdint.h>
@@ -61,32 +60,51 @@ ParseNumberResult parse_number(const char *line) {
   return result;
 }
 
-uint64_t *buffer = nullptr; // set capacity too?
 ParseNumberResult parse_number_literals(const char *line) {
   ParseNumberResult result = {.ok = false, .rest = line};
   if (!*line) return result;
 
-  // reset buffer
-  arrsetlen(buffer, 0);
-
   const char *ptr = line;
   uint64_t n = 0;
 
+  // first digit
   while (*ptr && *ptr != '\n') {
     if (is_digit(*ptr)) {
-      arrpush(buffer, *ptr - '0');
-      ptr++;
-      continue;
+      result.value = *ptr - '0';
+      break;
     }
 
     n = is_number_literal(ptr);
-    if (n) arrpush(buffer, n);
+    if (n) {
+      result.value = n;
+      break;
+    }
+
     ptr++;
   }
 
-  result.value = 10 * buffer[0] + buffer[arrlen(buffer) - 1];
+  // second digit
+  const char *end = strchrnul(line, '\n');
+  expect(end != line);
+  ptr = end - 1;
+
+  while (*ptr && *ptr != '\n') {
+    if (is_digit(*ptr)) {
+      result.value = 10 * result.value + *ptr - '0';
+      break;
+    }
+
+    n = is_number_literal(ptr);
+    if (n) {
+      result.value = 10 * result.value + n;
+      break;
+    }
+
+    ptr--;
+  }
+
   result.ok = true;
-  result.rest = *ptr ? ptr + 1 : ptr;
+  result.rest = *end ? end + 1 : end;
 
   return result;
 }
