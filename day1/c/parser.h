@@ -9,6 +9,7 @@ typedef struct {
 } ParseNumberResult;
 
 ParseNumberResult parse_number(const char *line);
+ParseNumberResult parse_number_literals(const char *line);
 
 #ifdef TEST
 void parser_tests(void);
